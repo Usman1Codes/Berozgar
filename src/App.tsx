@@ -144,18 +144,77 @@ export default function App() {
   };
 
   const handleSubmit = async () => {
+    setJobDescError(null);
+    setResumeError(null);
+    setFormError(null);
+    if (resumeFiles.length === 0) {
+      setResumeError("Please upload at least one resume file.");
+      return;
+    }
+    // Only one JD input allowed
+    const jdModes = [jobDescFiles.length > 0, !!jobDescUrl, !!jobDescText].filter(Boolean);
+    if (jdModes.length > 1) {
+      setJobDescError("Please provide only one job description input (file, URL, or text). Clear the others.");
+      return;
+    }
     setLoading(true);
+    setUploadProgress(0);
     try {
-      // Replace '/api/submit' with your backend endpoint
-      await axios.post('/api/submit', { /* payload */ });
-      alert('Submitted successfully!');
-    } catch (e) {
+      let jdUrlResult = null;
+      // If URL mode, call /api/jd_from_url first
+      if (jobDescUrl) {
+        try {
+          jdUrlResult = await axios.post("http://localhost:8001/api/jd_from_url", { url: jobDescUrl });
+        } catch (e: any) {
+          setJobDescError("Failed to fetch job description from URL.");
+          setLoading(false);
+          return;
+        }
+      }
+      const formData = new FormData();
+      resumeFiles.forEach((file) => {
+        formData.append("resume_files", file);
+      });
+      if (jobDescFiles.length > 0) {
+        formData.append("jd_file", jobDescFiles[0]); // Only first file supported for JD
+      } else if (jobDescText) {
+        formData.append("jd_text", jobDescText);
+      } // If URL mode, do NOT send jd_text or jd_file; backend will pick up job_description_url.txt
+
+      if (expFiles.length > 0) {
+        expFiles.forEach((file) => {
+          formData.append("exp_files", file);
+        });
+      }
+      if (readmeFiles.length > 0) {
+        readmeFiles.forEach((file) => {
+          formData.append("readme_files", file);
+        });
+      }
+      const response = await axios.post("http://localhost:8001/api/submit", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (e) => {
+          if (e.total) {
+            setUploadProgress(Math.round((e.loaded * 100) / e.total));
+          }
+        },
+      });
+      setResumeError(null);
+      setJobDescError(null);
+      setFormError(null);
+      alert(`Upload successful. Resumes: ${response.data.resume_files.join(", ")}, Experience: ${response.data.exp_files.join(", ")}, Readmes: ${response.data.readme_files.join(", ")}, JD: ${(response.data.jd_files || []).join(", ")}`);
+    } catch (e: any) {
       console.error(e);
-      alert('Submission failed.');
+      if (e.response && e.response.data && e.response.data.detail) {
+        setFormError(e.response.data.detail);
+      } else {
+        setFormError("Upload failed. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-[#18181b]">
@@ -407,6 +466,18 @@ export default function App() {
               <h3 className="text-lg font-semibold">Resume</h3>
               <div className="flex items-center gap-6">
                 <FileUpload onFilesSelected={setResumeFiles} uploading={loading} progress={uploadProgress} />
+                {resumeFiles.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {resumeFiles.map((file, idx) => (
+                      <div key={idx} className="flex items-center bg-gray-200 px-2 py-1 rounded">
+                        <span className="text-sm text-gray-700">{file.name}</span>
+                        <button type="button" className="ml-2 text-gray-500 hover:text-gray-700" onClick={() => setResumeFiles(prev => prev.filter((_, i) => i !== idx))}>
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <DrivePicker label="Resume" onFilePicked={setResumeDriveFile} pickedFile={resumeDriveFile ?? undefined} disabled={loading} />
               </div>
               {resumeError && <span className="text-xs text-red-500">{resumeError}</span>}
@@ -439,6 +510,18 @@ export default function App() {
               <h3 className="text-lg font-semibold">Experience</h3>
               <div className="flex items-center gap-6">
                 <FileUpload onFilesSelected={setExpFiles} uploading={loading} progress={uploadProgress} />
+                {expFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {expFiles.map((file, idx) => (
+                        <div key={idx} className="flex items-center bg-gray-200 px-2 py-1 rounded">
+                          <span className="text-sm text-gray-700">{file.name}</span>
+                          <button type="button" className="ml-2 text-gray-500 hover:text-gray-700" onClick={() => setExpFiles(prev => prev.filter((_, i) => i !== idx))}>
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 <DrivePicker label="Experience" onFilePicked={setExpDriveFile} pickedFile={expDriveFile ?? undefined} disabled={loading} />
               </div>
               {expError && <span className="text-xs text-red-500">{expError}</span>}
@@ -448,15 +531,23 @@ export default function App() {
               <h3 className="text-lg font-semibold">Project Readmes</h3>
               <div className="flex items-center gap-6">
                 <FileUpload onFilesSelected={setReadmeFiles} uploading={loading} progress={uploadProgress} />
+                    {readmeFiles.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        {readmeFiles.map((file, idx) => (
+                          <div key={idx} className="flex items-center bg-gray-200 px-2 py-1 rounded">
+                            <span className="text-sm text-gray-700">{file.name}</span>
+                            <button type="button" className="ml-2 text-gray-500 hover:text-gray-700" onClick={() => setReadmeFiles(prev => prev.filter((_, i) => i !== idx))}>
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                 <DrivePicker label="Project Readme" onFilePicked={setReadmeDriveFile} pickedFile={readmeDriveFile ?? undefined} disabled={loading} />
               </div>
               {readmeError && <span className="text-xs text-red-500">{readmeError}</span>}
             </Section>
-            {/* Job Type
-            <Section>
-              <h3 className="text-lg font-semibold">Job Type</h3>
-              <AnimatedDropdown />
-            </Section> */}
+
             {/* Job Description (moved below) */}
             <Section>
               <h3 className="text-lg font-semibold">Job Description</h3>
@@ -465,18 +556,18 @@ export default function App() {
                 className="w-full h-24 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 resize-none"
                 value={jobDescText}
                 onChange={e => setJobDescText(e.target.value)}
-                disabled={loading}
+                disabled={jobDescFiles.length > 0 || !!jobDescUrl}
               />
               <div className="flex items-center gap-6">
-                <FileUpload onFilesSelected={setJobDescFiles} uploading={loading} progress={uploadProgress} />
+                <FileUpload onFilesSelected={files => { setJobDescFiles(files); setJobDescText(""); setJobDescUrl(""); }} uploading={loading} progress={uploadProgress} />
                 <DrivePicker label="Pick from Drive" onFilePicked={setJobDescDriveFile} pickedFile={jobDescDriveFile ?? undefined} disabled={loading} />
                 <input
                   type="url"
                   placeholder="Paste JD URL"
                   className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500"
                   value={jobDescUrl}
-                  onChange={e => setJobDescUrl(e.target.value)}
-                  disabled={loading}
+                  onChange={e => { setJobDescUrl(e.target.value); setJobDescText(""); setJobDescFiles([]); }}
+                  disabled={loading || jobDescFiles.length > 0 || !!jobDescText}
                 />
               </div>
               {jobDescError && <span className="text-xs text-red-500">{jobDescError}</span>}

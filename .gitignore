@@ -52,3 +52,44 @@ Thumbs.db
 # gitignore
 .gitignore
 .client_secret.json
+
+
+# Python
+*.py[cod]
+__pycache__/
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual environments
+venv/
+ENV/
+env/
+.cvenv/
+.build_env/
+
+# SQLite database
+*.sqlite3
+*.db
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs
+*.log
+
+# Byte-compiled and C extensions
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Others
+.env
+.env.*
