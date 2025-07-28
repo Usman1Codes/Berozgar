@@ -6,3 +6,4 @@ requests==2.32.3
 langchain-google-genai
 langchain-community
 weasyprint
+beautifulsoup4==4.12.2

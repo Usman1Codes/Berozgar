@@ -13,9 +13,17 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TMP_DIR = os.path.join(BASE_DIR, "tmp")
 os.makedirs(TMP_DIR, exist_ok=True)
 
+
 # Logger setup
 logger = logging.getLogger("uvicorn.error")
+# Ensure job_description_text.txt exists so it can be overwritten on each submission
+jd_text_default_path = os.path.join(TMP_DIR, "job_description_text.txt")
+if not os.path.exists(jd_text_default_path):
+    with open(jd_text_default_path, "w", encoding="utf-8") as f:
+        pass
+logger.info(f"Ensured job description text file exists at {jd_text_default_path}")
 import requests
+from bs4 import BeautifulSoup
 from fastapi import Body
 
 app = FastAPI(
@@ -42,10 +50,14 @@ async def jd_from_url(url: str = Body(..., embed=True)):
         response = requests.get(url, timeout=10)
         response.raise_for_status()
         html_content = response.text
+        # Parse HTML and extract <h1>, <h2>, <h3> text
+        soup = BeautifulSoup(html_content, "html.parser")
+        elements = soup.find_all(["p", "li"])
+        page_text = "\n\n".join(el.get_text(strip=True) for el in elements)
         filename = "job_description_url.txt"
         filepath = os.path.join(TMP_DIR, filename)
         with open(filepath, "w", encoding="utf-8") as f:
-            f.write(html_content)
+            f.write(page_text)
         logger.info(f"Saved job description from URL {url} to {filepath}")
         return {"status": "ok", "jd_file": filename, "tmp_dir": TMP_DIR}
     except Exception as e:
@@ -117,15 +129,7 @@ async def submit(
                 logger.error(f"Failed to use job description from URL: {e}")
                 raise HTTPException(status_code=500, detail="Failed to use job description from URL.")
 
-    # Clean up old JD files after submission
-    for fn in ["job_description_text.txt", "job_description_url.txt"]:
-        try:
-            path = os.path.join(TMP_DIR, fn)
-            if os.path.exists(path):
-                os.remove(path)
-                logger.info(f"Cleaned up old JD file: {path}")
-        except Exception as e:
-            logger.warning(f"Failed to clean up JD file {fn}: {e}")
+    # Persistent JD files: no cleanup needed
 
     # Handle experience files
     if exp_files:
