@@ -1,9 +1,16 @@
 fastapi
 uvicorn[standard]
 python-dotenv
-langchain
+# langchain
+langchain==0.2.1
+langchain-core==0.2.3
+langchain-google-genai==1.0.5
+langchain-community==0.2.1
 requests==2.32.3
-langchain-google-genai
-langchain-community
 weasyprint
 beautifulsoup4==4.12.2
+pypdf==4.2.0
+unstructured==0.14.4
+pylatexenc==2.10
+python-multipart==0.0.9
+markdown>=3.4.1,<4.0
