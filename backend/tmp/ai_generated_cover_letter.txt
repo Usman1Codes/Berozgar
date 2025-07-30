@@ -1,11 +1,9 @@
-Dear Hiring Team,
+I'm an AI and Software Engineer specializing in machine learning and full-stack development, focused on creating AI-driven solutions.
 
-I’m a Cloud and DevOps Engineer with a strong foundation in computer science principles, specializing in optimizing cloud infrastructure and streamlining development workflows.
+I am writing to express my strong interest in the AI Intern position. My experience in developing and deploying AI applications, combined with my skills in machine learning and full-stack development, aligns well with the goals of this role. I am ready to contribute to innovative projects.
 
-I am excited about the Software Engineer Internship at Arkhitech, especially given my experience in enhancing engineering practices and implementing efficient solutions. My background aligns well with your requirements, and I am eager to contribute to your team's success.
+*   Developed an AI-powered digital forensic investigator using Streamlit, FastAPI, LangChain, and ChromaDB, enhancing document processing and conversational question answering.
+*   Built a multilingual movie summary translator and TTS system, improving natural language processing pipelines and model evaluation.
+*   Created an AI-powered vulnerability scanner and remediator, processing NVD JSON feeds and training a PyTorch neural network for vulnerability severity classification.
 
-*   Reduced monthly AWS costs by 67.5% through strategic cloud resource management and optimization.
-*   Designed and implemented unified monitoring and logging solutions, enhancing system observability and reducing incident recovery times.
-*   Automated CI/CD pipelines, improving deployment efficiency by 15% and minimizing rollback events.
-
-I am confident that my skills and experience make me a strong candidate for this internship, and I am enthusiastic about the opportunity to further discuss how I can contribute to Arkhitech.
+I am eager to apply my skills and contribute to your team. I would welcome the opportunity to discuss how my background aligns with your needs.

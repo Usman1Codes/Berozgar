@@ -1,5 +1,6 @@
 from fastapi import FastAPI, UploadFile, Form, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 from dotenv import load_dotenv
 import os
 import logging
@@ -45,9 +46,6 @@ app.add_middleware(
 
 @app.post("/api/jd_from_url")
 async def jd_from_url(url: str = Form(...)):
-    """
-    Accepts a URL, scrapes job description, and saves it as a .txt file.
-    """
     if not url:
         raise HTTPException(status_code=400, detail="URL is required.")
     try:
@@ -68,11 +66,6 @@ async def submit(
     jd_text: str = Form(None),
     jd_file: UploadFile = File(None)
 ):
-    """
-    Endpoint for handling submission, processing inputs, and generating AI content.
-    Requires at least one PDF and one .tex resume file.
-    Processes all PDFs for text extraction and LaTeX generation using the first .tex as the template.
-    """
     logger.info(f"TMP_DIR: {TMP_DIR}")
     logger.info(f"Received resume_files: {[rf.filename for rf in resume_files]}")
     saved = []
@@ -81,14 +74,12 @@ async def submit(
     jd_saved: List[str] = []
     ai_generated_files = []
 
-    # Validate resume files: at least one PDF and one .tex
     pdf_files = [rf for rf in resume_files if os.path.splitext(rf.filename)[1].lower() == '.pdf']
     tex_files = [rf for rf in resume_files if os.path.splitext(rf.filename)[1].lower() == '.tex']
     if not pdf_files or not tex_files:
         logger.error(f"Received {len(pdf_files)} PDF and {len(tex_files)} .tex files. At least one of each is required.")
         raise HTTPException(status_code=400, detail=f"At least one PDF and one .tex resume file are required. Received {len(pdf_files)} PDF and {len(tex_files)} .tex files.")
 
-    # Save the first .tex file as user_resume_template.tex
     user_template_path = os.path.join(TEMPLATES_DIR, "user_resume_template.tex")
     tex_processed = False
     for rf in tex_files:
@@ -105,7 +96,6 @@ async def submit(
         else:
             logger.warning(f"Skipping additional .tex file '{rf.filename}' as only one template is used.")
 
-    # Handle job description
     if jd_text:
         process_text_input(jd_text, "job_description_text", TMP_DIR)
         jd_saved.append("job_description_text.txt")
@@ -120,7 +110,6 @@ async def submit(
         jd_saved.append("job_description_url.txt")
         logger.info("Using existing job description from URL.")
 
-    # Handle supporting files
     if exp_files:
         for ef in exp_files:
             content = await ef.read()
@@ -138,7 +127,6 @@ async def submit(
             readme_saved.append(f"{input_field}.txt")
             logger.info(f"Processed readme file {rf2.filename} to {input_field}.txt")
 
-    # Handle resume files (only PDFs for content extraction)
     for rf in pdf_files:
         content = await rf.read()
         logger.debug(f"Reading resume file {rf.filename} with size {len(content)} bytes")
@@ -151,18 +139,15 @@ async def submit(
         saved.append(f"{input_field}.txt")
         logger.info(f"Processed resume file {rf.filename} to {input_field}.txt")
 
-    # AI Content Generation Pipeline
     try:
         logger.info("Starting AI content generation pipeline...")
         for fname in saved:
-            # Load resume text
             resume_path = os.path.join(TMP_DIR, fname)
             with open(resume_path, 'r', encoding='utf-8') as f:
                 resume_text = f.read()
             logger.debug(f"Loaded resume text from {fname}: {resume_text[:100]}...")
             base_name = os.path.splitext(fname)[0]
 
-            # Load context (job description, experience, readme)
             context_parts = []
             for ctx_file in exp_saved + readme_saved + jd_saved:
                 ctx_path = os.path.join(TMP_DIR, ctx_file)
@@ -172,7 +157,6 @@ async def submit(
                 logger.debug(f"Loaded context from {ctx_file}: {ctx_content[:100]}...")
             context_text = "\n".join(context_parts)
 
-            # Generate improved resume
             logger.info(f"Processing resume: {fname}")
             improved_resume = await rewrite_resume(resume_text, context_text)
             improved_resume_filename = f"{base_name}_ai_improved.txt"
@@ -182,7 +166,6 @@ async def submit(
             ai_generated_files.append(improved_resume_filename)
             logger.info(f"Saved improved resume: {improved_resume_filename}")
 
-            # Generate LaTeX resume using user template
             latex_prompt_path = os.path.join(PROMPTS_DIR, "latex_resume_prompt.txt")
             try:
                 latex_resume = await generate_latex_resume(improved_resume, user_template_path, latex_prompt_path)
@@ -197,7 +180,6 @@ async def submit(
                 raise HTTPException(status_code=500, detail=f"Failed to generate LaTeX resume for {fname}: {str(e)}")
 
         if saved:
-            # Generate cover letter using the first resume
             logger.info("Generating cover letter...")
             first_resume_fname = saved[0]
             with open(os.path.join(TMP_DIR, first_resume_fname), 'r', encoding='utf-8') as f:
@@ -233,3 +215,19 @@ async def submit(
         "ai_generated_files": ai_generated_files,
         "tmp_dir": TMP_DIR
     }
+
+@app.get("/api/get_file_content/{filename}")
+async def get_file_content(filename: str):
+    filepath = os.path.join(TMP_DIR, filename)
+    if not os.path.exists(filepath):
+        raise HTTPException(status_code=404, detail="File not found.")
+    with open(filepath, 'r', encoding='utf-8') as f:
+        content = f.read()
+    return {"content": content}
+
+@app.get("/api/download/{filename}")
+async def download_file(filename: str):
+    filepath = os.path.join(TMP_DIR, filename)
+    if not os.path.exists(filepath):
+        raise HTTPException(status_code=404, detail="File not found.")
+    return FileResponse(filepath, media_type='application/octet-stream', filename=filename)

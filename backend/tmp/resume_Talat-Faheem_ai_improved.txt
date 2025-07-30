@@ -1,65 +1,35 @@
 Talat Faheem
-/envelpetalatawan75@gmail.com
-github.com/talatops
-linkedin.com/in/talat-fm
+/ petalatawan75@gmail.com
+/ github.com/talatops
+/ linkedin.com/in/talat-fm
 Experience
-Cloud Engineer, Antematter – Islamabad, Pakistan
-Jan 2025 – Present
-Reduced monthly AWS bill by 67.5% (from $400 to $130) through strategic cost optimization.
-Developed monitoring solutions using AWS CloudTrail and budget constraints for effective resource and expense management.
-Implemented cybersecurity tools (OWASP, Acunetix) to identify security risks in workflows and codebase.
-Facilitated cross-functional cloud strategy sessions, resulting in 25% faster deployment cycles.
-Managed DevOps and deployments for an external MVP project, ensuring scalability for production-level user traffic.
-Streamlined internal project deployment processes using kamal-deploy, increasing deployment efficiency by 15%.
-Associate Cloud Infrastructure Engineer, buildonhybrid.com
-Oct 2024 - Mar 25
-Designed and implemented a unified monitoring and logging infrastructure using Prometheus, Grafana, and Loki.
-Built custom Grafana dashboards and alerting pipelines for real-time system health monitoring.
-Utilized Prometheus and Node Exporter/cAdvisor for improved performance diagnostics across multiple services and nodes.
-Integrated Loki with Promtail for centralized log aggregation, reducing MTTR and improving root cause analysis.
-Implemented monitoring with Grafana, Prometheus, Node Exporter, and cAdvisor, providing developers with actionable alerts.
-Added centralized logging using Loki and Grafana, managing logs from 20+ Digital Ocean droplets.
-DevOps Intern, Antematter – Islamabad, Pakistan
-Oct 2024 – Dec 2024
-Deployed complete infrastructures on AWS and created CI/CD pipelines using GitHub Actions.
-Developed and maintained Helm charts for microservices-based applications.
-Managed deployments on EC2 instances using Docker, NGINX, and Application Load Balancer for seamless traffic management.
-Freelance DevOps Engineer, Fiverr, Upwork
-May 2024 – Oct 2024
-Delivered CI/CD pipeline setups, Dockerized applications, and scalable infrastructure on AWS, GCP, and DigitalOcean.
-Configured and optimized Nginx, Gunicorn, and system monitoring tools for production deployments.
-Automated development workflows using GitHub Actions, Bash scripting, and Terraform.
-Improved deployment reliability by 30–50% through container orchestration (Docker Compose/Kubernetes).
-Projects
-AI-Powered Digital Forensic Investigator
-Developed a Retrieval-Augmented Generation chat assistant using Streamlit, FastAPI, LangChain, and ChromaDB.
-Designed modular components (ChatManager, FileManager, RAGSystem) for scalable document ingestion and conversational QA.
-Integrated multi-model support (OpenAI GPT-4/3.5, Anthropic Claude) with source attribution and conversation memory.
+AI-Powered-Digital-Forensic-Investigator
+• Architected and implemented a Retrieval-Augmented Generation chat assistant using Streamlit, FastAPI, LangChain, and ChromaDB.
+• Designed modular components (ChatManager, FileManager, RAGSystem) for scalable document ingestion and conversational QA.
+• Integrated multi-model support (OpenAI GPT-4/3.5, Anthropic Claude) with source attribution and conversation memory.
 Filmception
-Developed a multilingual movie summary translator and TTS system with Googletrans and gTTS in a Streamlit interface.
-Built a DistilBERT-based multi-label genre classifier in TensorFlow, tuning thresholds to optimize F1 score.
-Enhanced user experience with tabbed UI, progress feedback, and audio playback.
+• Developed a multilingual movie summary translator and TTS system with Googletrans and gTTS in a Streamlit interface.
+• Built a DistilBERT-based multi-label genre classifier in TensorFlow, tuning thresholds to optimize F1 score.
+• Enhanced user experience with tabbed UI, progress feedback, and audio playback.
 Library Management System
-Implemented a role-based CLI application in C++ with classes for Administrator, Librarian, Student, and Janitor.
-Developed a hash-chain mechanism for data integrity in persistent storage.
+• Implemented a role-based CLI application in C++ with classes for Administrator, Librarian, Student, and Janitor.
+• Developed a hash-chain mechanism for data integrity in persistent storage.
 Ludo Game
-Created a graphical Ludo game in C++ using Raylib and pthreads for multithreading.
-Designed a semaphore-driven synchronization scheme for concurrent player threads.
+• Created a graphical Ludo game in C++ using Raylib and pthreads for multithreading.
+• Designed a semaphore-driven synchronization scheme for concurrent player threads.
 AI-Powered Vulnerability Scanner & Remediator
-Processed NVD JSON feeds with Pandas, extracting CVE details and mapping CVSS scores to severity labels.
-Trained and evaluated a PyTorch neural network (SeverityClassifierNN) for vulnerability severity classification.
+• Processed NVD JSON feeds with Pandas, extracting CVE details and mapping CVSS scores to severity labels.
+• Trained and evaluated a PyTorch neural network (SeverityClassifierNN) for vulnerability severity classification.
 YouTube Video Summarizer & Q-A Tool
-Built a CLI tool integrating YouTube transcript API, Whisper STT, and Google Gemini for summary and interactive Q&A.
-Developed robust URL parsing (input_handler), transcript fetching (video_extractor), and prompt templates (gemini_helpers).
+• Built a CLI tool integrating YouTube transcript API, Whisper STT, and Google Gemini for summary and interactive Q&A.
+• Developed robust URL parsing (input_handler), transcript fetching (video_extractor), and prompt templates (gemini_helpers).
+• Optimized dependency management with lazy imports to reduce user overhead.
 Education
-Bachelor in Computer Science, Specializing in Cyber Security (FAST-NUCES) - Islamabad, Pakistan
+Bachelor in Computer Science , Specializing in Cyber Security (FAST-NUCES) - Islamabad, Pakistan
 Skills
-Languages: Python, Bash scripting, C++, YAML, NodeJS, JS, Java
-Linux: System Administration, Ubuntu, RedHat, Amazon Linux
-Networking: SSH, RDP, TCP/UDP, HTTP/HTTPS, DNS, IP Addressing, Subnetting, VPN
-DevOps: Docker, Kubernetes, ArgoCD, Jenkins, Ansible, Helm, GitHub Actions, Terraform, CloudFormation, Kamal-deploy, Nginx
-Version Control: Git, GitHub, GitLab, Replit
-AWS: VPC, IAM, EC2, EBS, ECS, EKS, S3, RDS, Lambda, API Gateway, CloudFormation, CloudWatch, CloudTrail, CodeBuild, CodePipeline, CodeDeploy
-Backend: Node.js, Express, Django, Flask, RESTful API, GraphQL, Microservices
-GenAI Tools: Cursor, VSCode, Streamlit, WindSurf
-Other Cloud: GCP, Azure, Digital Ocean
+Languages: Python, C++, YAML
+Frameworks & Libraries: Streamlit, FastAPI, LangChain, TensorFlow, PyTorch
+AI & NLP: OpenAI GPT, Anthropic Claude, Google Gemini, Whisper, transformer-based models
+Data & Storage: Pandas, ChromaDB
+DevOps & Tooling: Docker, Jupyter Notebook, CLI design
+Principles: Modular design, prompt engineering, concurrency, data integrity, UI/UX best practices
