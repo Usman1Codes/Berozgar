@@ -1,0 +1,234 @@
+```latex
+\documentclass[10pt, letterpaper]{article}
+
+\usepackage[
+    ignoreheadfoot,
+    top=1.5cm,
+    bottom=0.3cm,
+    left=1.5cm,
+    right=1.5cm,
+    footskip=1.0cm,
+]{geometry}
+\usepackage[explicit]{titlesec}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{primaryColor}{RGB}{0, 79, 144}
+\usepackage{enumitem}
+\usepackage{fontawesome5}
+\usepackage{amsmath}
+\usepackage[
+    colorlinks=true,
+    urlcolor=primaryColor
+]{hyperref}
+\usepackage[pscoord]{eso-pic}
+\usepackage{calc}
+\usepackage{bookmark}
+\usepackage{lastpage}
+\usepackage{changepage}
+\usepackage{paracol}
+\usepackage{ifthen}
+\usepackage{needspace}
+\usepackage{iftex}
+
+\ifPDFTeX
+    \input{glyphtounicode}
+    \pdfgentounicode=1
+    \usepackage[T1]{fontenc}
+    \usepackage[utf8]{inputenc}
+    \usepackage{lmodern}
+\fi
+
+\usepackage[default, type1]{sourcesanspro}
+
+\AtBeginEnvironment{adjustwidth}{\partopsep0pt}
+\pagestyle{empty}
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\topskip}{0pt}
+\setlength{\columnsep}{0.15cm}
+
+\makeatletter
+\let\ps@customFooterStyle\ps@plain
+\patchcmd{\ps@customFooterStyle}{\thepage}{
+    \color{gray}\textit{\small Name - Page \thepage{} of \pageref*{LastPage}}
+}{}{}
+\makeatother
+\pagestyle{customFooterStyle}
+
+\titleformat{\section}{
+    \needspace{4\baselineskip}
+    \Large\color{primaryColor}
+}{}{
+}{
+    \textbf{#1}\hspace{0.15cm}\titlerule[0.8pt]\hspace{-0.1cm}
+}[]
+
+\titlespacing{\section}{-1pt}{0.3cm}{0.2cm}
+
+\newenvironment{highlights}{
+    \begin{itemize}[
+        topsep=0.15cm,
+        parsep=0.15cm,
+        partopsep=0pt,
+        itemsep=0.1cm,
+        leftmargin=0.4cm + 10pt
+    ]
+}{
+    \end{itemize}
+}
+
+\newenvironment{highlightsforbulletentries}{
+    \begin{itemize}[
+        topsep=0.15cm,
+        parsep=0.15cm,
+        partopsep=0pt,
+        itemsep=0.1cm,
+        leftmargin=10pt
+    ]
+}{
+    \end{itemize}
+}
+
+\newenvironment{onecolentry}{
+    \begin{adjustwidth}{0.2cm + 0.00001cm}{0.2cm + 0.00001cm}
+}{
+    \end{adjustwidth}
+}
+
+\newenvironment{twocolentry}[2][]{
+    \onecolentry
+    \def\secondColumn{#2}
+    \setcolumnwidth{\fill, 4.5cm}
+    \begin{paracol}{2}
+}{
+    \switchcolumn \raggedleft \secondColumn
+    \end{paracol}
+    \endonecolentry
+}
+
+\newenvironment{threecolentry}[3][]{
+    \onecolentry
+    \def\thirdColumn{#3}
+    \setcolumnwidth{1cm, \fill, 4.5cm}
+    \begin{paracol}{3}
+    {\raggedright #2} \switchcolumn
+}{
+    \switchcolumn \raggedleft \thirdColumn
+    \end{paracol}
+    \endonecolentry
+}
+
+\newenvironment{header}{
+    \setlength{\topsep}{0pt}\par\kern\topsep\centering\color{primaryColor}\linespread{1.5}
+}{
+    \par\kern\topsep
+}
+
+\let\hrefWithoutArrow\href
+\renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 }\raisebox{.15ex}{\footnotesize \faExternalLink*}}}
+
+\begin{document}
+
+\begin{header}
+    \fontsize{30pt}{30pt}
+    \textbf{Muhammad Usman}
+
+    \vspace{0.3cm}
+
+    \normalsize
+    \mbox{\hrefWithoutArrow{mailto:usmanmuhammad.riaz00@gmail.com}{{\footnotesize\faEnvelope[regular]} usmanmuhammad.riaz00@gmail.com}}%
+    \kern 0.25cm%
+    \mbox{\href{https://linkedin.com/in/Muhammad Usman}{{\footnotesize\faLinkedin} LinkedIn}}%
+    \kern 0.25cm%
+    \mbox{\href{https://github.com/Muhammad Usman}{{\footnotesize\faGithub} Github}}%
+    \kern 0.25cm%
+    \mbox{\hrefWithoutArrow{tel:+923004389966}{{\footnotesize\faPhone} +923004389966}}%
+\end{header}
+
+\section{Profile}
+\begin{onecolentry}
+    Experienced software engineer and AI developer specializing in full-stack development, machine learning, and systems programming. Adept at designing and implementing AI-powered applications and high-performance systems. Eager to leverage expertise in HTML/CSS, code review, and QA to ensure high standards in AI-generated code evaluations.
+\end{onecolentry}
+
+\section{Projects}
+\begin{twocolentry}{\textbf{Streamlit, FastAPI, LangChain, ChromaDB, OpenAI GPT-4/3.5, Anthropic Claude}}
+    \textbf{AI-Powered Digital Forensic Investigator}
+    \begin{highlights}
+        \item Architected and implemented a Retrieval-Augmented Generation (RAG) chat assistant using Streamlit, FastAPI, LangChain, and ChromaDB.
+        \item Designed modular components (ChatManager, FileManager, RAGSystem) for scalable document ingestion and conversational QA.
+        \item Integrated multi-model support (OpenAI GPT-4/3.5, Anthropic Claude) with source attribution and conversation memory.
+    \end{highlights}
+\end{twocolentry}
+
+\begin{twocolentry}{\textbf{Streamlit, Googletrans, gTTS, TensorFlow, DistilBERT}}
+    \textbf{Filmception: Movie Summary Translator \& Genre Predictor}
+    \begin{highlights}
+        \item Developed a multilingual movie summary translator and TTS system with Googletrans and gTTS in a Streamlit interface.
+        \item Built a DistilBERT-based multi-label genre classifier in TensorFlow, tuning thresholds to optimize F1 score.
+        \item Enhanced user experience with tabbed UI, progress feedback, and audio playback.
+    \end{highlights}
+\end{twocolentry}
+
+\begin{twocolentry}{\textbf{Pandas, PyTorch}}
+    \textbf{AI-Powered Vulnerability Scanner \& Remediator}
+    \begin{highlights}
+        \item Processed NVD JSON feeds with Pandas, extracting CVE details and mapping CVSS scores to severity labels.
+        \item Trained and evaluated a PyTorch neural network (SeverityClassifierNN) for vulnerability severity classification.
+        \item Orchestrated end-to-end data pipelines in Jupyter notebooks and handled large-scale JSON parsing.
+    \end{highlights}
+\end{twocolentry}
+
+\begin{twocolentry}{\textbf{YouTube transcript API, Whisper STT, Google Gemini}}
+    \textbf{YouTube Video Summarizer \& Q-A Tool}
+    \begin{highlights}
+        \item Built a CLI tool integrating YouTube transcript API, Whisper STT, and Google Gemini for summary and interactive Q\&A.
+        \item Developed robust URL parsing, transcript fetching, and prompt templates.
+        \item Optimized dependency management with lazy imports to reduce user overhead.
+    \end{highlights}
+\end{twocolentry}
+
+\begin{twocolentry}{\textbf{C++}}
+    \textbf{Library Management System}
+    \begin{highlights}
+        \item Implemented a role-based CLI application in C++ with classes for Administrator, Librarian, Student, and Janitor.
+        \item Developed a hash-chain mechanism for data integrity in persistent storage.
+    \end{highlights}
+\end{twocolentry}
+
+\begin{twocolentry}{\textbf{C++, Raylib, pthreads}}
+    \textbf{Ludo Game}
+    \begin{highlights}
+        \item Created a graphical Ludo game in C++ using Raylib and pthreads for multithreading.
+        \item Designed a semaphore-driven synchronization scheme for concurrent player threads.
+    \end{highlights}
+\end{twocolentry}
+
+\section{Achievements}
+\begin{onecolentry}
+    \begin{highlights}
+        \item 2nd Place, AI Hackathon (2023): AIO
+        \item 2nd Place, CTF Competition (2024): FAST Cyber Society
+        \item 3rd Place, Voice Agent Hackathon (2025): Trillet.ai
+    \end{highlights}
+\end{onecolentry}
+
+\section{Educational Background}
+\begin{twocolentry}{\textbf{NUCES (FAST), Islamabad} \\ \textit{2022 – 2026}}
+    \textbf{Bachelor of Science, Cyber Security}
+    \begin{highlights}
+        \item Specialized coursework in Artificial Intelligence and Cyber Security.
+    \end{highlights}
+\end{twocolentry}
+
+\section{Technologies}
+\begin{onecolentry}
+    \textbf{Languages:} Python, C++, HTML, CSS \\
+    \textbf{Frameworks \& Libraries:} Streamlit, FastAPI, LangChain, TensorFlow, PyTorch, Raylib \\
+    \textbf{AI \& NLP:} OpenAI GPT, Anthropic Claude, Google Gemini, Whisper, transformer-based models \\
+    \textbf{Data \& Storage:} Pandas, ChromaDB \\
+    \textbf{DevOps \& Tooling:} Docker, Git, Jupyter Notebook, CLI design
+\end{onecolentry}
+
+\end{document}
+```

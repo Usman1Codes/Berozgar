@@ -1,0 +1,11 @@
+Dear Hiring Team,
+
+I’m a Cloud and DevOps Engineer with a strong foundation in computer science principles, specializing in optimizing cloud infrastructure and streamlining development workflows.
+
+I am excited about the Software Engineer Internship at Arkhitech, especially given my experience in enhancing engineering practices and implementing efficient solutions. My background aligns well with your requirements, and I am eager to contribute to your team's success.
+
+*   Reduced monthly AWS costs by 67.5% through strategic cloud resource management and optimization.
+*   Designed and implemented unified monitoring and logging solutions, enhancing system observability and reducing incident recovery times.
+*   Automated CI/CD pipelines, improving deployment efficiency by 15% and minimizing rollback events.
+
+I am confident that my skills and experience make me a strong candidate for this internship, and I am enthusiastic about the opportunity to further discuss how I can contribute to Arkhitech.

@@ -1,0 +1,317 @@
+```latex
+\documentclass[10pt, letterpaper]{article}
+
+% Packages:
+\usepackage[
+    ignoreheadfoot,
+    top=1.5 cm,
+    bottom=1.5 cm,
+    left=1.8 cm,
+    right=1.8 cm,
+    footskip=1.0 cm,
+]{geometry}
+\usepackage{titlesec}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{primaryColor}{RGB}{0, 0, 0}
+\usepackage{enumitem}
+\usepackage{fontawesome5}
+\usepackage{amsmath}
+\usepackage[
+    pdftitle={Talat Faheem's Resume},
+    pdfauthor={Talat Faheem},
+    pdfcreator={LaTeX with RenderCV},
+    colorlinks=true,
+    urlcolor=primaryColor
+]{hyperref}
+\usepackage[pscoord]{eso-pic}
+\usepackage{calc}
+\usepackage{bookmark}
+\usepackage{lastpage}
+\usepackage{changepage}
+\usepackage{paracol}
+\usepackage{ifthen}
+\usepackage{needspace}
+\usepackage{iftex}
+
+% Ensure that generated PDF is machine readable/ATS parsable:
+\ifPDFTeX
+    \input{glyphtounicode}
+    \pdfgentounicode=1
+    \usepackage[T1]{fontenc}
+    \usepackage[utf8]{inputenc}
+    \usepackage{lmodern}
+\fi
+
+\usepackage{charter}
+
+% Some settings:
+\raggedright
+\AtBeginEnvironment{adjustwidth}{\partopsep0pt}
+\pagestyle{empty}
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\topskip}{0pt}
+\setlength{\columnsep}{0.15cm}
+\pagenumbering{gobble}
+
+\titleformat{\section}{\needspace{4\baselineskip}\bfseries\large\color{primaryColor}}{}{0pt}{}[\vspace{1pt}\titlerule]
+\titlespacing{\section}{
+    -1pt
+}{
+    0.5 cm
+}{
+    0.3 cm
+}
+
+\renewcommand\labelitemi{$\vcenter{\hbox{\small$\bullet$}}$}
+
+\newenvironment{highlights}{
+    \begin{itemize}[
+        topsep=0.10 cm,
+        parsep=0.10 cm,
+        partopsep=0pt,
+        itemsep=0pt,
+        leftmargin=0 cm + 10pt
+    ]
+}{
+    \end{itemize}
+}
+
+\newenvironment{highlightsforbulletentries}{
+    \begin{itemize}[
+        topsep=0.10 cm,
+        parsep=0.10 cm,
+        partopsep=0pt,
+        itemsep=0pt,
+        leftmargin=10pt
+    ]
+}{
+    \end{itemize}
+}
+
+\newenvironment{onecolentry}{
+    \begin{adjustwidth}{
+        0 cm + 0.00001 cm
+    }{
+        0 cm + 0.00001 cm
+    }
+}{
+    \end{adjustwidth}
+}
+
+\newenvironment{twocolentry}[2][]{
+    \onecolentry
+    \def\secondColumn{#2}
+    \setcolumnwidth{\fill, 4.5 cm}
+    \begin{paracol}{2}
+}{
+    \switchcolumn \raggedleft \secondColumn
+    \end{paracol}
+    \endonecolentry
+}
+
+\newenvironment{threecolentry}[3][]{
+    \onecolentry
+    \def\thirdColumn{#3}
+    \setcolumnwidth{, \fill, 4.5 cm}
+    \begin{paracol}{3}
+    {\raggedright #2} \switchcolumn
+}{
+    \switchcolumn \raggedleft \thirdColumn
+    \end{paracol}
+    \endonecolentry
+}
+
+\newenvironment{header}{
+    \setlength{\topsep}{0pt}\par\kern\topsep\centering\linespread{1.5}
+}{
+    \par\kern\topsep
+}
+
+% Save the original href command in a new command:
+\let\hrefWithoutArrow\href
+
+\begin{document}
+
+% Header
+\begin{header}
+    \fontsize{28 pt}{28 pt}\selectfont \textbf{\textcolor{primaryColor}{Talat Faheem}}
+
+    \vspace{4 pt}
+    \fontsize{14 pt}{14 pt}\selectfont \textcolor{primaryColor}{Cloud / DevOps Engineer}
+
+    \vspace{8 pt}
+
+    \normalsize
+    \mbox{\faEnvelope\ \hrefWithoutArrow{mailto:talatawan75@gmail.com}{talatawan75@gmail.com}}%
+    \kern 12.0 pt%
+    \AND%
+    \kern 12.0 pt%
+    \mbox{\faGithub\ \hrefWithoutArrow{https://github.com/talatops}{github.com/talatops}}%
+    \kern 12.0 pt%
+    \AND%
+    \kern 12.0 pt%
+    \mbox{\faLinkedin\ \hrefWithoutArrow{https://www.linkedin.com/in/talat-fm/}{linkedin.com/in/talat-fm}}%
+\end{header}
+
+\vspace{5 pt - 0.3 cm}
+
+
+% Experience
+\section{Experience}
+\begin{twocolentry}{Jan 2025 -- Present}
+    \textbf{Cloud Engineer}, Antematter -- Islamabad, Pakistan
+\end{twocolentry}
+\vspace{0.10 cm}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Reduced monthly AWS bill by 67.5\% (from \$400 to \$130) through strategic cost optimization.
+        \item Developed monitoring solutions using AWS CloudTrail and budget constraints for effective resource and expense management.
+        \item Implemented cybersecurity tools (OWASP, Acunetix) to identify security risks in workflows and codebase.
+        \item Facilitated cross-functional cloud strategy sessions, resulting in 25\% faster deployment cycles.
+        \item Managed DevOps and deployments for an external MVP project, ensuring scalability for production-level user traffic.
+        \item Streamlined internal project deployment processes using kamal-deploy, increasing deployment efficiency by 15\%.
+    \end{highlights}
+\end{onecolentry}
+
+\vspace{0.10 cm}
+
+\begin{twocolentry}{Oct 2024 - Mar 25}
+    \textbf{Associate Cloud Infrastructure Engineer}, buildonhybrid.com
+\end{twocolentry}
+\vspace{0.10 cm}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Designed and implemented a unified monitoring and logging infrastructure using Prometheus, Grafana, and Loki.
+        \item Built custom Grafana dashboards and alerting pipelines for real-time system health monitoring.
+        \item Utilized Prometheus and Node Exporter/cAdvisor for improved performance diagnostics across multiple services and nodes.
+        \item Integrated Loki with Promtail for centralized log aggregation, reducing MTTR and improving root cause analysis.
+        \item Implemented monitoring with Grafana, Prometheus, Node Exporter, and cAdvisor, providing developers with actionable alerts.
+        \item Added centralized logging using Loki and Grafana, managing logs from 20+ Digital Ocean droplets.
+    \end{highlights}
+\end{onecolentry}
+
+\vspace{0.10 cm}
+
+\begin{twocolentry}{Oct 2024 – Dec 2024}
+    \textbf{DevOps Intern}, Antematter – Islamabad, Pakistan
+\end{twocolentry}
+\vspace{0.10 cm}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Deployed complete infrastructures on AWS and created CI/CD pipelines using GitHub Actions.
+        \item Developed and maintained Helm charts for microservices-based applications.
+        \item Managed deployments on EC2 instances using Docker, NGINX, and Application Load Balancer for seamless traffic management.
+    \end{highlights}
+\end{onecolentry}
+
+\vspace{0.10 cm}
+
+\begin{twocolentry}{May 2024 – Oct 2024}
+    \textbf{Freelance DevOps Engineer}, Fiverr, Upwork
+\end{twocolentry}
+\vspace{0.10 cm}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Delivered CI/CD pipeline setups, Dockerized applications, and scalable infrastructure on AWS, GCP, and DigitalOcean.
+        \item Configured and optimized Nginx, Gunicorn, and system monitoring tools for production deployments.
+        \item Automated development workflows using GitHub Actions, Bash scripting, and Terraform.
+        \item Improved deployment reliability by 30–50\% through container orchestration (Docker Compose/Kubernetes).
+    \end{highlights}
+\end{onecolentry}
+
+% Projects
+\section{Projects}
+\vspace{0.10 cm}
+\begin{onecolentry}
+    \textbf{AI-Powered Digital Forensic Investigator}
+    \begin{highlights}
+        \item Developed a Retrieval-Augmented Generation chat assistant using Streamlit, FastAPI, LangChain, and ChromaDB.
+        \item Designed modular components (ChatManager, FileManager, RAGSystem) for scalable document ingestion and conversational QA.
+        \item Integrated multi-model support (OpenAI GPT-4/3.5, Anthropic Claude) with source attribution and conversation memory.
+    \end{highlights}
+\end{onecolentry}
+\vspace{0.10 cm}
+
+\begin{onecolentry}
+    \textbf{Filmception}
+    \begin{highlights}
+        \item Developed a multilingual movie summary translator and TTS system with Googletrans and gTTS in a Streamlit interface.
+        \item Built a DistilBERT-based multi-label genre classifier in TensorFlow, tuning thresholds to optimize F1 score.
+        \item Enhanced user experience with tabbed UI, progress feedback, and audio playback.
+    \end{highlights}
+\end{onecolentry}
+\vspace{0.10 cm}
+
+\begin{onecolentry}
+    \textbf{Library Management System}
+    \begin{highlights}
+        \item Implemented a role-based CLI application in C++ with classes for Administrator, Librarian, Student, and Janitor.
+        \item Developed a hash-chain mechanism for data integrity in persistent storage.
+    \end{highlights}
+\end{onecolentry}
+\vspace{0.10 cm}
+
+\begin{onecolentry}
+    \textbf{Ludo Game}
+    \begin{highlights}
+        \item Created a graphical Ludo game in C++ using Raylib and pthreads for multithreading.
+        \item Designed a semaphore-driven synchronization scheme for concurrent player threads.
+    \end{highlights}
+\end{onecolentry}
+\vspace{0.10 cm}
+
+\begin{onecolentry}
+    \textbf{AI-Powered Vulnerability Scanner & Remediator}
+    \begin{highlights}
+        \item Processed NVD JSON feeds with Pandas, extracting CVE details and mapping CVSS scores to severity labels.
+        \item Trained and evaluated a PyTorch neural network (SeverityClassifierNN) for vulnerability severity classification.
+    \end{highlights}
+\end{onecolentry}
+\vspace{0.10 cm}
+
+\begin{onecolentry}
+    \textbf{YouTube Video Summarizer & Q-A Tool}
+    \begin{highlights}
+        \item Built a CLI tool integrating YouTube transcript API, Whisper STT, and Google Gemini for summary and interactive Q\&A.
+        \item Developed robust URL parsing (input\_handler), transcript fetching (video\_extractor), and prompt templates (gemini\_helpers).
+    \end{highlights}
+\end{onecolentry}
+
+% Achievements
+\section{Achievements}
+
+% Education
+\section{Education}
+\vspace{0.10 cm}
+\begin{twocolentry}{}
+    \textbf{Bachelor in Computer Science}, Specializing in Cyber Security (FAST-NUCES) - Islamabad, Pakistan
+\end{twocolentry}
+
+% Skills
+\section{Skills}
+\vspace{0.10 cm}
+\begin{onecolentry}
+    \textbf{Languages:} Python, Bash scripting, C++, YAML, NodeJS, JS, Java
+    \vspace{0.1cm}
+    \textbf{Linux:} System Administration, Ubuntu, RedHat, Amazon Linux
+    \vspace{0.1cm}
+    \textbf{Networking:} SSH, RDP, TCP/UDP, HTTP/HTTPS, DNS, IP Addressing, Subnetting, VPN
+    \vspace{0.1cm}
+    \textbf{DevOps:} Docker, Kubernetes, ArgoCD, Jenkins, Ansible, Helm, GitHub Actions, Terraform, CloudFormation, Kamal-deploy, Nginx
+    \vspace{0.1cm}
+    \textbf{Version Control:} Git, GitHub, GitLab, Replit
+    \vspace{0.1cm}
+    \textbf{AWS:} VPC, IAM, EC2, EBS, ECS, EKS, S3, RDS, Lambda, API Gateway, CloudFormation, CloudWatch, CloudTrail, CodeBuild, CodePipeline, CodeDeploy
+    \vspace{0.1cm}
+    \textbf{Backend:} Node.js, Express, Django, Flask, RESTful API, GraphQL, Microservices
+    \vspace{0.1cm}
+    \textbf{GenAI Tools:} Cursor, VSCode, Streamlit, WindSurf
+    \vspace{0.1cm}
+    \textbf{Other Cloud:} GCP, Azure, Digital Ocean
+\end{onecolentry}
+
+\end{document}
+```

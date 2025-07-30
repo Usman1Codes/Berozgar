@@ -465,7 +465,7 @@ export default function App() {
             <Section>
               <h3 className="text-lg font-semibold">Resume</h3>
               <div className="flex items-center gap-6">
-                <FileUpload onFilesSelected={setResumeFiles} uploading={loading} progress={uploadProgress} />
+                <FileUpload onFilesSelected={(files) => setResumeFiles(prev => [...prev, ...files])} uploading={loading} progress={uploadProgress} />
                 {resumeFiles.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-1">
                     {resumeFiles.map((file, idx) => (

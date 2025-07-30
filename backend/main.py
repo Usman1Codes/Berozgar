@@ -2,82 +2,33 @@ from fastapi import FastAPI, UploadFile, Form, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
-from typing import List, Dict
 import logging
-import re
-import requests
-from bs4 import BeautifulSoup
-from fastapi import Body
+from typing import List
+from nlp_pipeline import process_input_content, process_text_input, scrape_job_description
+from ai_content_generation import rewrite_resume, generate_cover_letter
+from latex_resume_generator import generate_latex_resume
 
-from nlp_pipeline import aggregate_context, parse_tex_sections, parse_pdf_resume
-from ai_content_generation import ai_generator
-
-# Load environment variables from .env
+# Load environment variables
 load_dotenv()
 
-# Create local tmp directory for uploads
+# Create directories
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TMP_DIR = os.path.join(BASE_DIR, "tmp")
+TEMPLATES_DIR = os.path.join(BASE_DIR, "templates")
+PROMPTS_DIR = os.path.join(BASE_DIR, "prompts")
 os.makedirs(TMP_DIR, exist_ok=True)
+os.makedirs(TEMPLATES_DIR, exist_ok=True)
+os.makedirs(PROMPTS_DIR, exist_ok=True)
 
 # Logger setup
 logger = logging.getLogger("uvicorn.error")
 
-# Ensure job_description_text.txt exists so it can be overwritten on each submission
+# Ensure job_description_text.txt exists
 jd_text_default_path = os.path.join(TMP_DIR, "job_description_text.txt")
 if not os.path.exists(jd_text_default_path):
     with open(jd_text_default_path, "w", encoding="utf-8") as f:
-        pass
-logger.info(f"Ensured job description text file exists at {jd_text_default_path}")
-
-def reconstruct_latex_file(original_latex_path: str, parsed_sections: Dict[str, str], improved_sections: Dict[str, str]) -> str:
-    """
-    Reconstructs a LaTeX file by replacing the content of specified sections with improved versions.
-
-    This function reads a LaTeX file, iterates through sections that have been parsed, and replaces
-    their original content with AI-generated improvements. It uses regular expressions for robust,
-    in-place replacement to preserve the overall LaTeX structure.
-
-    Args:
-        original_latex_path: The file path to the original LaTeX resume.
-        parsed_sections: A dictionary where keys are section names and values are the original,
-                         extracted text content of those sections.
-        improved_sections: A dictionary containing the AI-improved text for one or more sections.
-
-    Returns:
-        The full content of the LaTeX file with the sections replaced.
-    """
-    try:
-        with open(original_latex_path, 'r', encoding='utf-8') as f:
-            original_content = f.read()
-    except FileNotFoundError:
-        logger.error(f"Error: Original LaTeX file not found at {original_latex_path}")
-        return ""
-
-    modified_content = original_content
-    for section_name, original_section_content in parsed_sections.items():
-        if section_name in improved_sections:
-            improved_section_content = improved_sections[section_name]
-
-            if not original_section_content.strip():
-                logger.warning(f"Skipping replacement for section '{section_name}' because original content is empty.")
-                continue
-
-            try:
-                # Use regex for a more robust replacement. Escape special regex characters in the original content.
-                # The `re.DOTALL` flag allows `.` to match newlines, which is crucial for multi-line section content.
-                pattern = re.compile(re.escape(original_section_content), re.DOTALL)
-
-                if pattern.search(modified_content):
-                    modified_content = pattern.sub(improved_section_content, modified_content, count=1)
-                    logger.info(f"Successfully replaced section: {section_name}")
-                else:
-                    logger.warning(f"Could not find the exact text for section '{section_name}' in the resume. Skipping replacement.")
-
-            except re.error as e:
-                logger.error(f"Regex error while replacing section '{section_name}': {e}")
-
-    return modified_content
+        f.write("")
+    logger.info(f"Ensured job description text file exists at {jd_text_default_path}")
 
 app = FastAPI(
     title="Resume Tool Backend",
@@ -85,7 +36,6 @@ app = FastAPI(
     version="0.1.0"
 )
 
-# Allow CORS from frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -94,29 +44,21 @@ app.add_middleware(
 )
 
 @app.post("/api/jd_from_url")
-async def jd_from_url(url: str = Body(..., embed=True)):
+async def jd_from_url(url: str = Form(...)):
     """
-    Accepts a URL, fetches its HTML, and saves it as a .txt file in tmp.
+    Accepts a URL, scrapes job description, and saves it as a .txt file.
     """
     if not url:
         raise HTTPException(status_code=400, detail="URL is required.")
     try:
-        response = requests.get(url, timeout=10)
-        response.raise_for_status()
-        html_content = response.text
-        # Parse HTML and extract text
-        soup = BeautifulSoup(html_content, "html.parser")
-        elements = soup.find_all(["p", "li"])
-        page_text = "\n\n".join(el.get_text(strip=True) for el in elements)
-        filename = "job_description_url.txt"
-        filepath = os.path.join(TMP_DIR, filename)
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(page_text)
+        filename = "job_description_url"
+        scrape_job_description(url, filename, TMP_DIR)
+        filepath = os.path.join(TMP_DIR, f"{filename}.txt")
         logger.info(f"Saved job description from URL {url} to {filepath}")
-        return {"status": "ok", "jd_file": filename, "tmp_dir": TMP_DIR}
+        return {"status": "ok", "jd_file": f"{filename}.txt", "tmp_dir": TMP_DIR}
     except Exception as e:
-        logger.error(f"Failed to fetch or save job description from URL: {e}")
-        raise HTTPException(status_code=500, detail="Failed to fetch or save job description from URL.")
+        logger.error(f"Failed to scrape job description from URL: {e}")
+        raise HTTPException(status_code=500, detail="Failed to scrape job description from URL.")
 
 @app.post("/api/submit")
 async def submit(
@@ -127,7 +69,9 @@ async def submit(
     jd_file: UploadFile = File(None)
 ):
     """
-    Endpoint for handling submission including job description via text, file, or url.
+    Endpoint for handling submission, processing inputs, and generating AI content.
+    Requires at least one PDF and one .tex resume file.
+    Processes all PDFs for text extraction and LaTeX generation using the first .tex as the template.
     """
     logger.info(f"TMP_DIR: {TMP_DIR}")
     logger.info(f"Received resume_files: {[rf.filename for rf in resume_files]}")
@@ -135,21 +79,43 @@ async def submit(
     exp_saved: List[str] = []
     readme_saved: List[str] = []
     jd_saved: List[str] = []
+    ai_generated_files = []
+
+    # Validate resume files: at least one PDF and one .tex
+    pdf_files = [rf for rf in resume_files if os.path.splitext(rf.filename)[1].lower() == '.pdf']
+    tex_files = [rf for rf in resume_files if os.path.splitext(rf.filename)[1].lower() == '.tex']
+    if not pdf_files or not tex_files:
+        logger.error(f"Received {len(pdf_files)} PDF and {len(tex_files)} .tex files. At least one of each is required.")
+        raise HTTPException(status_code=400, detail=f"At least one PDF and one .tex resume file are required. Received {len(pdf_files)} PDF and {len(tex_files)} .tex files.")
+
+    # Save the first .tex file as user_resume_template.tex
+    user_template_path = os.path.join(TEMPLATES_DIR, "user_resume_template.tex")
+    tex_processed = False
+    for rf in tex_files:
+        if not tex_processed:
+            content = await rf.read()
+            try:
+                with open(user_template_path, 'wb') as f:
+                    f.write(content)
+                logger.info(f"Saved user .tex file '{rf.filename}' as {user_template_path}")
+                tex_processed = True
+            except Exception as e:
+                logger.error(f"Failed to save user .tex file '{rf.filename}': {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Failed to save user .tex file: {str(e)}")
+        else:
+            logger.warning(f"Skipping additional .tex file '{rf.filename}' as only one template is used.")
 
     # Handle job description
     if jd_text:
-        jd_txt_path = os.path.join(TMP_DIR, "job_description_text.txt")
-        with open(jd_txt_path, "w", encoding="utf-8") as f:
-            f.write(jd_text)
+        process_text_input(jd_text, "job_description_text", TMP_DIR)
         jd_saved.append("job_description_text.txt")
-        logger.info(f"Saved job description text to {jd_txt_path}")
+        logger.info(f"Saved job description text to {jd_text_default_path}")
     elif jd_file:
-        jd_file_path = os.path.join(TMP_DIR, jd_file.filename)
-        with open(jd_file_path, "wb") as f:
-            content_jd = await jd_file.read()
-            f.write(content_jd)
-        jd_saved.append(jd_file.filename)
-        logger.info(f"Saved job description file {jd_file.filename} to {jd_file_path}")
+        content_jd = await jd_file.read()
+        ext = os.path.splitext(jd_file.filename)[1].lower()
+        process_input_content(content_jd, ext, "job_description_file", TMP_DIR)
+        jd_saved.append("job_description_file.txt")
+        logger.info(f"Processed job description file {jd_file.filename} to job_description_file.txt")
     elif os.path.exists(os.path.join(TMP_DIR, "job_description_url.txt")):
         jd_saved.append("job_description_url.txt")
         logger.info("Using existing job description from URL.")
@@ -157,100 +123,106 @@ async def submit(
     # Handle supporting files
     if exp_files:
         for ef in exp_files:
-            exp_path = os.path.join(TMP_DIR, ef.filename)
-            with open(exp_path, "wb") as f:
-                content2 = await ef.read()
-                f.write(content2)
-            exp_saved.append(ef.filename)
-            logger.info(f"Saved experience file {ef.filename} to {exp_path}")
+            content = await ef.read()
+            ext = os.path.splitext(ef.filename)[1].lower()
+            input_field = f"experience_{os.path.splitext(ef.filename)[0]}"
+            process_input_content(content, ext, input_field, TMP_DIR)
+            exp_saved.append(f"{input_field}.txt")
+            logger.info(f"Processed experience file {ef.filename} to {input_field}.txt")
     if readme_files:
         for rf2 in readme_files:
-            readme_path = os.path.join(TMP_DIR, rf2.filename)
-            with open(readme_path, "wb") as f:
-                content3 = await rf2.read()
-                f.write(content3)
-            readme_saved.append(rf2.filename)
-            logger.info(f"Saved readme file {rf2.filename} to {readme_path}")
+            content = await rf2.read()
+            ext = os.path.splitext(rf2.filename)[1].lower()
+            input_field = f"readme_{os.path.splitext(rf2.filename)[0]}"
+            process_input_content(content, ext, input_field, TMP_DIR)
+            readme_saved.append(f"{input_field}.txt")
+            logger.info(f"Processed readme file {rf2.filename} to {input_field}.txt")
 
-    # Handle resume files
-    for rf in resume_files:
-        path = os.path.join(TMP_DIR, rf.filename)
-        with open(path, "wb") as f:
-            content = await rf.read()
-            f.write(content)
-        saved.append(rf.filename)
-        logger.info(f"Saved {rf.filename} to {path}")
-
-    # NLP pipeline processing
-    try:
-        full_context = aggregate_context(TMP_DIR)
-        parsed_resumes = {}
-        for fname in saved:
-            ext = os.path.splitext(fname)[1].lower()
-            path = os.path.join(TMP_DIR, fname)
-            if ext == ".tex":
-                parsed_resumes[fname] = parse_tex_sections(path)
-            else:
-                parsed_resumes[fname] = parse_pdf_resume(path)
-    except Exception as e:
-        logger.error(f"NLP pipeline processing failed: {e}")
-        raise HTTPException(status_code=500, detail="NLP pipeline processing failed.")
+    # Handle resume files (only PDFs for content extraction)
+    for rf in pdf_files:
+        content = await rf.read()
+        logger.debug(f"Reading resume file {rf.filename} with size {len(content)} bytes")
+        ext = os.path.splitext(rf.filename)[1].lower()
+        if ext != '.pdf':
+            logger.error(f"Skipping non-PDF file {rf.filename} in resume processing.")
+            continue
+        input_field = f"resume_{os.path.splitext(rf.filename)[0]}"
+        process_input_content(content, ext, input_field, TMP_DIR)
+        saved.append(f"{input_field}.txt")
+        logger.info(f"Processed resume file {rf.filename} to {input_field}.txt")
 
     # AI Content Generation Pipeline
-    ai_generated_files = []
     try:
         logger.info("Starting AI content generation pipeline...")
         for fname in saved:
-            ext = os.path.splitext(fname)[1].lower()
+            # Load resume text
+            resume_path = os.path.join(TMP_DIR, fname)
+            with open(resume_path, 'r', encoding='utf-8') as f:
+                resume_text = f.read()
+            logger.debug(f"Loaded resume text from {fname}: {resume_text[:100]}...")
             base_name = os.path.splitext(fname)[0]
 
-            if ext == ".tex":
-                logger.info(f"Processing LaTeX resume: {fname}")
-                tex_sections = parsed_resumes[fname]
-                improved_sections = await ai_generator.process_latex_resume(tex_sections, full_context)
-                improved_latex_content = reconstruct_latex_file(
-                    os.path.join(TMP_DIR, fname), tex_sections, improved_sections
-                )
-                improved_latex_filename = f"{base_name}_ai_improved.tex"
-                improved_latex_path = os.path.join(TMP_DIR, improved_latex_filename)
-                with open(improved_latex_path, "w", encoding="utf-8") as f:
-                    f.write(improved_latex_content)
-                ai_generated_files.append(improved_latex_filename)
-                logger.info(f"Saved improved LaTeX resume: {improved_latex_filename}")
+            # Load context (job description, experience, readme)
+            context_parts = []
+            for ctx_file in exp_saved + readme_saved + jd_saved:
+                ctx_path = os.path.join(TMP_DIR, ctx_file)
+                with open(ctx_path, 'r', encoding='utf-8') as f:
+                    ctx_content = f.read()
+                context_parts.append(ctx_content)
+                logger.debug(f"Loaded context from {ctx_file}: {ctx_content[:100]}...")
+            context_text = "\n".join(context_parts)
 
-            elif ext == ".pdf":
-                logger.info(f"Processing PDF resume: {fname}")
-                resume_text = parsed_resumes[fname]
-                improved_resume = await ai_generator.process_pdf_resume(resume_text, full_context)
-                improved_resume_filename = f"{base_name}_ai_improved.txt"
-                improved_resume_path = os.path.join(TMP_DIR, improved_resume_filename)
-                with open(improved_resume_path, "w", encoding="utf-8") as f:
-                    f.write(improved_resume)
-                ai_generated_files.append(improved_resume_filename)
-                logger.info(f"Saved improved PDF resume content: {improved_resume_filename}")
+            # Generate improved resume
+            logger.info(f"Processing resume: {fname}")
+            improved_resume = await rewrite_resume(resume_text, context_text)
+            improved_resume_filename = f"{base_name}_ai_improved.txt"
+            improved_resume_path = os.path.join(TMP_DIR, improved_resume_filename)
+            with open(improved_resume_path, 'w', encoding='utf-8') as f:
+                f.write(improved_resume)
+            ai_generated_files.append(improved_resume_filename)
+            logger.info(f"Saved improved resume: {improved_resume_filename}")
+
+            # Generate LaTeX resume using user template
+            latex_prompt_path = os.path.join(PROMPTS_DIR, "latex_resume_prompt.txt")
+            try:
+                latex_resume = await generate_latex_resume(improved_resume, user_template_path, latex_prompt_path)
+                latex_filename = f"{base_name}_ai_improved.tex"
+                latex_path = os.path.join(TMP_DIR, latex_filename)
+                with open(latex_path, 'w', encoding='utf-8') as f:
+                    f.write(latex_resume)
+                ai_generated_files.append(latex_filename)
+                logger.info(f"Saved LaTeX resume: {latex_filename}")
+            except Exception as e:
+                logger.error(f"Failed to generate LaTeX resume for {fname}: {str(e)}")
+                raise HTTPException(status_code=500, detail=f"Failed to generate LaTeX resume for {fname}: {str(e)}")
 
         if saved:
+            # Generate cover letter using the first resume
             logger.info("Generating cover letter...")
             first_resume_fname = saved[0]
-            parsed_resume_data = parsed_resumes[first_resume_fname]
-            if isinstance(parsed_resume_data, dict):
-                resume_text_for_cover = "\n\n".join(f"**{k}:**\n{v}" for k, v in parsed_resume_data.items())
-            else:
-                resume_text_for_cover = parsed_resume_data
-            cover_letter = await ai_generator.generate_cover_letter(resume_text_for_cover, full_context)
+            with open(os.path.join(TMP_DIR, first_resume_fname), 'r', encoding='utf-8') as f:
+                resume_text = f.read()
+            context_parts = []
+            for ctx_file in exp_saved + readme_saved + jd_saved:
+                ctx_path = os.path.join(TMP_DIR, ctx_file)
+                with open(ctx_path, 'r', encoding='utf-8') as f:
+                    ctx_content = f.read()
+                context_parts.append(ctx_content)
+            context_text = "\n".join(context_parts)
+
+            cover_letter = await generate_cover_letter(resume_text, context_text)
             cover_letter_filename = "ai_generated_cover_letter.txt"
             cover_letter_path = os.path.join(TMP_DIR, cover_letter_filename)
-            with open(cover_letter_path, "w", encoding="utf-8") as f:
+            with open(cover_letter_path, 'w', encoding='utf-8') as f:
                 f.write(cover_letter)
             ai_generated_files.append(cover_letter_filename)
             logger.info(f"Saved cover letter: {cover_letter_filename}")
-        
+
         logger.info(f"AI content generation completed. Generated files: {ai_generated_files}")
 
     except Exception as e:
         logger.error(f"AI content generation failed: {str(e)}")
-        ai_generated_files = []
-        logger.info("Continuing without AI generation due to error")
+        raise HTTPException(status_code=500, detail=f"AI content generation failed: {str(e)}")
 
     return {
         "status": "ok",
@@ -259,7 +231,5 @@ async def submit(
         "readme_files": readme_saved,
         "jd_files": jd_saved,
         "ai_generated_files": ai_generated_files,
-        "tmp_dir": TMP_DIR,
-        "full_context": full_context,
-        "parsed_resumes": parsed_resumes
+        "tmp_dir": TMP_DIR
     }

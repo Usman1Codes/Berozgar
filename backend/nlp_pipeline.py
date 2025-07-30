@@ -1,101 +1,121 @@
-"""
-nlp_pipeline.py
-
-Implements context aggregation and structure-aware resume parsing.
-"""
-
 import os
-from typing import Dict, List
-from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader, UnstructuredWordDocumentLoader
-from pylatexenc.latexwalker import LatexWalker
-from pylatexenc.latex2text import LatexNodes2Text
+import re
+from langchain_community.document_loaders import PyPDFLoader, UnstructuredMarkdownLoader
+from bs4 import BeautifulSoup
+import requests
+import logging
+import tempfile
 
+# Logger setup
+logger = logging.getLogger("uvicorn.error")
 
-def aggregate_context(directory: str) -> str:
+def normalize_text(text: str) -> str:
     """
-    Load all supporting documents in a directory using langchain-community loaders
-    and concatenate them into a single context string.
-    Supports .txt, .md, .pdf, .docx, and .tex files.
+    Normalize text by removing extra whitespace and standardizing newlines.
     """
-    pieces: List[str] = []
-    for fname in sorted(os.listdir(directory)):
-        path = os.path.join(directory, fname)
-        ext = os.path.splitext(fname)[1].lower()
-        try:
-            if ext == ".pdf":
-                loader = PyPDFLoader(path)
+    text = re.sub(r'\s+', ' ', text.strip())
+    text = re.sub(r'\n+', '\n', text)
+    logger.debug(f"Normalized text: {text[:100]}...")
+    return text
+
+def save_text(text: str, output_path: str) -> None:
+    """
+    Save text to a .txt file.
+    """
+    logger.debug(f"Saving text to {output_path}")
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    with open(output_path, 'w', encoding='utf-8') as f:
+        f.write(text)
+
+def process_input_content(content: bytes, ext: str, input_field: str, output_dir: str) -> None:
+    """
+    Process in-memory content (PDF, TXT, MD), extract text, and save to .txt.
+    """
+    if ext not in {'.pdf', '.txt', '.md'}:
+        raise ValueError(f"Unsupported file extension: {ext}")
+
+    try:
+        logger.debug(f"Processing content for {input_field} with extension {ext}")
+        if ext == '.pdf':
+            # Save to temporary file for PyPDFLoader
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
+                temp_file.write(content)
+                temp_file_path = temp_file.name
+            try:
+                loader = PyPDFLoader(temp_file_path)
                 docs = loader.load()
-                pieces.extend(doc.page_content for doc in docs)
-            elif ext == ".md":
-                try:
-                    loader = UnstructuredMarkdownLoader(path)
-                    docs = loader.load()
-                    pieces.extend(doc.page_content for doc in docs)
-                except LookupError:
-                    # Fallback to raw markdown text if NLTK tagger is missing
-                    with open(path, "r", encoding="utf-8") as f:
-                        pieces.append(f.read())
-            elif ext == ".docx":
-                loader = UnstructuredWordDocumentLoader(path)
-                docs = loader.load()
-                pieces.extend(doc.page_content for doc in docs)
-            elif ext == ".tex":
-                with open(path, "r", encoding="utf-8") as f:
-                    latex_str = f.read()
-                try:
-                    text = LatexNodes2Text().latex_to_text(latex_str)
-                except Exception:
-                    # Fallback to raw LaTeX if parsing fails
-                    text = latex_str
-                pieces.append(text)
-            elif ext == ".txt":
-                with open(path, "r", encoding="utf-8") as f:
-                    pieces.append(f.read())
-            else:
+                text = "\n".join(doc.page_content for doc in docs)
+            finally:
+                os.unlink(temp_file_path)  # Clean up temporary file
+            logger.debug(f"Extracted PDF text: {text[:100]}...")
+        elif ext == '.md':
+            temp_path = os.path.join(output_dir, f"temp_{input_field}.md")
+            with open(temp_path, 'wb') as f:
+                f.write(content)
+            loader = UnstructuredMarkdownLoader(temp_path)
+            docs = loader.load()
+            text = "\n".join(doc.page_content for doc in docs)
+            os.remove(temp_path)
+            logger.debug(f"Extracted Markdown text: {text[:100]}...")
+        elif ext == '.txt':
+            text = content.decode('utf-8')
+            logger.debug(f"Extracted Text: {text[:100]}...")
+    except Exception as e:
+        logger.error(f"Failed to process content for {input_field}: {e}")
+        raise RuntimeError(f"Failed to process content for {input_field}: {e}")
+
+    normalized_text = normalize_text(text)
+    output_path = os.path.join(output_dir, f"{input_field}.txt")
+    save_text(normalized_text, output_path)
+    logger.info(f"Saved extracted text to {output_path}")
+
+def process_text_input(text: str, input_field: str, output_dir: str) -> None:
+    """
+    Process text input, normalize, and save to .txt.
+    """
+    logger.debug(f"Processing text input for {input_field}: {text[:100]}...")
+    normalized_text = normalize_text(text)
+    output_path = os.path.join(output_dir, f"{input_field}.txt")
+    save_text(normalized_text, output_path)
+    logger.info(f"Saved text to {output_path}")
+
+def scrape_job_description(url: str, input_field: str, output_dir: str) -> None:
+    """
+    Scrape job description from a URL and save to .txt.
+    """
+    logger.debug(f"Scraping job description from {url}")
+    include_keywords = [
+        'job description', 'responsibilities', 'requirements', 'qualifications',
+        'skills', 'experience', 'duties', 'role', 'position', 'overview'
+    ]
+    exclude_keywords = [
+        'privacy policy', 'terms of service', 'cookie policy', 'footer', 'navigation'
+    ]
+
+    try:
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+
+        for elem in soup(['script', 'style', 'nav', 'footer', 'header', 'aside']):
+            elem.decompose()
+
+        text_parts = []
+        for tag in soup.find_all(['p', 'div', 'li', 'h1', 'h2', 'h3', 'h4']):
+            text = tag.get_text(strip=True)
+            if not text:
                 continue
-        except Exception as e:
-            raise RuntimeError(f"Failed to load {fname}: {e}")
-    # Separate documents with two newlines
-    return "\n\n".join(pieces)
+            text_lower = text.lower()
+            if any(keyword in text_lower for keyword in include_keywords) and \
+               not any(keyword in text_lower for keyword in exclude_keywords):
+                text_parts.append(text)
 
-
-def parse_tex_sections(path: str) -> Dict[str, str]:
-    """
-    Parse a LaTeX resume (.tex) into a mapping of section names to raw LaTeX content.
-    Uses pylatexenc to walk the node tree.
-    """
-    with open(path, "r", encoding="utf-8") as f:
-        latex_str = f.read()
-    walker = LatexWalker(latex_str)
-    nodes, _, _ = walker.get_latex_nodes()
-    sections: Dict[str, str] = {}
-    current: str = None
-    buffer: List[str] = []
-    for node in nodes:
-        # Detect \section commands
-        if hasattr(node, "macroname") and node.macroname == "section":
-            # Save previous section
-            if current:
-                sections[current] = "".join(buffer).strip()
-                buffer = []
-            # Safely extract section title
-            title = None
-            if hasattr(node, "nodeargs") and isinstance(node.nodeargs, list) and len(node.nodeargs) > 0:
-                arg0 = node.nodeargs[0]
-                if hasattr(arg0, "nodelist") and arg0.nodelist:
-                    title = "".join(n.chars for n in arg0.nodelist).strip()
-            current = title or "Unnamed"
-        else:
-            buffer.append(node.latex_verbatim())
-    # Save last section
-    if current:
-        sections[current] = "".join(buffer).strip()
-    return sections
-
-def parse_pdf_resume(path: str) -> str:
-    """
-    Extract full clean text from PDF resume using PyPDFLoader.
-    """
-    loader = PyPDFLoader(path)
-    docs = loader.load()
-    return "\n\n".join(doc.page_content for doc in docs)
+        raw_text = " ".join(text_parts)
+        normalized_text = normalize_text(raw_text)
+        output_path = os.path.join(output_dir, f"{input_field}.txt")
+        save_text(normalized_text, output_path)
+        logger.info(f"Saved scraped job description to {output_path}")
+    except Exception as e:
+        logger.error(f"Failed to scrape {url}: {e}")
+        raise RuntimeError(f"Failed to scrape {url}: {e}")

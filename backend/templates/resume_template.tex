@@ -1,0 +1,194 @@
+\documentclass[10pt, letterpaper]{article}
+
+\usepackage[
+    ignoreheadfoot,
+    top=1.5cm,
+    bottom=0.3cm,
+    left=1.5cm,
+    right=1.5cm,
+    footskip=1.0cm,
+]{geometry}
+\usepackage[explicit]{titlesec}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage[dvipsnames]{xcolor}
+\definecolor{primaryColor}{RGB}{0, 79, 144}
+\usepackage{enumitem}
+\usepackage{fontawesome5}
+\usepackage{amsmath}
+\usepackage[
+    colorlinks=true,
+    urlcolor=primaryColor
+]{hyperref}
+\usepackage[pscoord]{eso-pic}
+\usepackage{calc}
+\usepackage{bookmark}
+\usepackage{lastpage}
+\usepackage{changepage}
+\usepackage{paracol}
+\usepackage{ifthen}
+\usepackage{needspace}
+\usepackage{iftex}
+
+\ifPDFTeX
+    \input{glyphtounicode}
+    \pdfgentounicode=1
+    \usepackage[T1]{fontenc}
+    \usepackage[utf8]{inputenc}
+    \usepackage{lmodern}
+\fi
+
+\usepackage[default, type1]{sourcesanspro}
+
+\AtBeginEnvironment{adjustwidth}{\partopsep0pt}
+\pagestyle{empty}
+\setcounter{secnumdepth}{0}
+\setlength{\parindent}{0pt}
+\setlength{\topskip}{0pt}
+\setlength{\columnsep}{0.15cm}
+
+\makeatletter
+\let\ps@customFooterStyle\ps@plain
+\patchcmd{\ps@customFooterStyle}{\thepage}{
+    \color{gray}\textit{\small Name - Page \thepage{} of \pageref*{LastPage}}
+}{}{}
+\makeatother
+\pagestyle{customFooterStyle}
+
+\titleformat{\section}{
+    \needspace{4\baselineskip}
+    \Large\color{primaryColor}
+}{}{
+}{
+    \textbf{#1}\hspace{0.15cm}\titlerule[0.8pt]\hspace{-0.1cm}
+}[]
+
+\titlespacing{\section}{-1pt}{0.3cm}{0.2cm}
+
+\newenvironment{highlights}{
+    \begin{itemize}[
+        topsep=0.15cm,
+        parsep=0.15cm,
+        partopsep=0pt,
+        itemsep=0.1cm,
+        leftmargin=0.4cm + 10pt
+    ]
+}{
+    \end{itemize}
+}
+
+\newenvironment{highlightsforbulletentries}{
+    \begin{itemize}[
+        topsep=0.15cm,
+        parsep=0.15cm,
+        partopsep=0pt,
+        itemsep=0.1cm,
+        leftmargin=10pt
+    ]
+}{
+    \end{itemize}
+}
+
+\newenvironment{onecolentry}{
+    \begin{adjustwidth}{0.2cm + 0.00001cm}{0.2cm + 0.00001cm}
+}{
+    \end{adjustwidth}
+}
+
+\newenvironment{twocolentry}[2][]{
+    \onecolentry
+    \def\secondColumn{#2}
+    \setcolumnwidth{\fill, 4.5cm}
+    \begin{paracol}{2}
+}{
+    \switchcolumn \raggedleft \secondColumn
+    \end{paracol}
+    \endonecolentry
+}
+
+\newenvironment{threecolentry}[3][]{
+    \onecolentry
+    \def\thirdColumn{#3}
+    \setcolumnwidth{1cm, \fill, 4.5cm}
+    \begin{paracol}{3}
+    {\raggedright #2} \switchcolumn
+}{
+    \switchcolumn \raggedleft \thirdColumn
+    \end{paracol}
+    \endonecolentry
+}
+
+\newenvironment{header}{
+    \setlength{\topsep}{0pt}\par\kern\topsep\centering\color{primaryColor}\linespread{1.5}
+}{
+    \par\kern\topsep
+}
+
+\let\hrefWithoutArrow\href
+\renewcommand{\href}[2]{\hrefWithoutArrow{#1}{\ifthenelse{\equal{#2}{}}{ }{#2 }\raisebox{.15ex}{\footnotesize \faExternalLink*}}}
+
+\begin{document}
+
+\begin{header}
+    \fontsize{30pt}{30pt}
+    \textbf{Your Name}
+
+    \vspace{0.3cm}
+
+    \normalsize
+    \mbox{\hrefWithoutArrow{mailto:email@example.com}{{\footnotesize\faEnvelope[regular]} email@example.com}}%
+    \kern 0.25cm%
+    \mbox{\href{https://linkedin.com/in/yourprofile}{{\footnotesize\faLinkedin} LinkedIn}}%
+    \kern 0.25cm%
+    \mbox{\href{https://github.com/yourusername}{{\footnotesize\faGithub} Github}}%
+    \kern 0.25cm%
+    \mbox{\hrefWithoutArrow{tel:+123456789}{{\footnotesize\faPhone} +123456789}}%
+\end{header}
+
+\section{Profile}
+\begin{onecolentry}
+    % Your summary here
+\end{onecolentry}
+
+\section{Experience}
+\begin{twocolentry}{\textbf{Tech Stack}}
+    \textbf{Experience Title}
+    \begin{highlights}
+        \item Description point one.
+        \item Description point two.
+    \end{highlights}
+\end{twocolentry}
+
+\section{Projects}
+\begin{twocolentry}{\textbf{Tech Stack}}
+    \textbf{Project Title}
+    \begin{highlights}
+        \item Description point one.
+        \item Description point two.
+    \end{highlights}
+\end{twocolentry}
+
+\section{Achievements}
+\begin{onecolentry}
+    \begin{highlights}
+        \item Your achievement one
+        \item Your achievement two
+    \end{highlights}
+\end{onecolentry}
+
+\section{Educational Background}
+\begin{twocolentry}{\textbf{Your University} \\ \textit{Years}}
+    \textbf{Degree Name}
+    \begin{highlights}
+        \item Relevant coursework or details
+    \end{highlights}
+\end{twocolentry}
+
+\section{Technologies}
+\begin{onecolentry}
+    \textbf{Languages:} ... \\
+    \textbf{Tools:} ... \\
+    \textbf{Frameworks:} ...
+\end{onecolentry}
+
+\end{document}

@@ -1,0 +1,31 @@
+**Section to Rewrite:** {section_name}
+
+**Reference Context (Job Description, Role Requirements, Supporting Materials):**  
+{full_context}
+
+**Original Section Content (in [Label] format):**  
+{section_content}
+
+---
+
+**Rewrite Guidelines:**
+
+1. Analyze the target role and requirements from the provided context.
+2. Reuse and adapt content from the original section where possible—rewrite intelligently, not blindly.
+3. Write in plain, professional language—concise, structured, and easy to read.
+4. Emphasize relevant results, skills, and achievements; quantify impact where applicable.
+5. Remove anything irrelevant or redundant; add content only if contextually supported.
+6. Maintain section-appropriate tone and formatting:
+   - **Summary:** Brief, compelling overview of qualifications and value offered with 2 or maximum 3 lines paragraph using short straightforward sentences(this only for summary or profile section ignore it is any other section).
+   - **Experience:** Role titles, key responsibilities, notable outcomes.
+   - **Projects:** Clearly describe purpose, tools used, and outcomes. Focus on relevance to the target role. Highlight problem-solving, technologies applied, and results delivered (quantify where possible).
+   - **Skills:** Relevant technical and professional tools, platforms, or methodologies.
+   - **achievements:** Relevant achievements, awards, or honors making stong impresion
+   - **Education:** Degree(s), institution(s), academic milestones or honors.
+7. Ensure clarity, consistency, and ATS compatibility with relevant keyword usage.
+8. Output the rewritten content in plain text—**one bullet or sentence per line**, suitable for direct use in a JSON 'content' field.
+9. Do not include any extra commentary, formatting, or explanation.
+
+---
+
+**Your Rewritten Section (plain text only, one item per line):**

@@ -1,0 +1,54 @@
+Muhammad Usman
+usmanmuhammad.riaz00@gmail.com
+linkedin.com/in/Muhammad Usman
+github.com/Muhammad Usman
++923004389966
+
+Summary
+Experienced software engineer and AI developer specializing in full-stack development, machine learning, and systems programming. Adept at designing and implementing AI-powered applications and high-performance systems. Eager to leverage expertise in HTML/CSS, code review, and QA to ensure high standards in AI-generated code evaluations.
+
+Projects
+AI-Powered Digital Forensic Investigator
+Architected and implemented a Retrieval-Augmented Generation (RAG) chat assistant using Streamlit, FastAPI, LangChain, and ChromaDB.
+Designed modular components (ChatManager, FileManager, RAGSystem) for scalable document ingestion and conversational QA.
+Integrated multi-model support (OpenAI GPT-4/3.5, Anthropic Claude) with source attribution and conversation memory.
+
+Filmception: Movie Summary Translator & Genre Predictor
+Developed a multilingual movie summary translator and TTS system with Googletrans and gTTS in a Streamlit interface.
+Built a DistilBERT-based multi-label genre classifier in TensorFlow, tuning thresholds to optimize F1 score.
+Enhanced user experience with tabbed UI, progress feedback, and audio playback.
+
+AI-Powered Vulnerability Scanner & Remediator
+Processed NVD JSON feeds with Pandas, extracting CVE details and mapping CVSS scores to severity labels.
+Trained and evaluated a PyTorch neural network (SeverityClassifierNN) for vulnerability severity classification.
+Orchestrated end-to-end data pipelines in Jupyter notebooks and handled large-scale JSON parsing.
+
+YouTube Video Summarizer & Q-A Tool
+Built a CLI tool integrating YouTube transcript API, Whisper STT, and Google Gemini for summary and interactive Q&A.
+Developed robust URL parsing, transcript fetching, and prompt templates.
+Optimized dependency management with lazy imports to reduce user overhead.
+
+Library Management System
+Implemented a role-based CLI application in C++ with classes for Administrator, Librarian, Student, and Janitor.
+Developed a hash-chain mechanism for data integrity in persistent storage.
+
+Ludo Game
+Created a graphical Ludo game in C++ using Raylib and pthreads for multithreading.
+Designed a semaphore-driven synchronization scheme for concurrent player threads.
+
+Achievements
+2nd Place, AI Hackathon (2023): AIO
+2nd Place, CTF Competition (2024): FAST Cyber Society
+3rd Place, Voice Agent Hackathon (2025): Trillet.ai
+
+Education
+Bachelor of Science, Cyber Security
+NUCES (FAST), Islamabad 2022 – 2026
+Specialized coursework in Artificial Intelligence and Cyber Security.
+
+Skills
+Languages: Python, C++, HTML, CSS
+Frameworks & Libraries: Streamlit, FastAPI, LangChain, TensorFlow, PyTorch, Raylib
+AI & NLP: OpenAI GPT, Anthropic Claude, Google Gemini, Whisper, transformer-based models
+Data & Storage: Pandas, ChromaDB
+DevOps & Tooling: Docker, Git, Jupyter Notebook, CLI design
